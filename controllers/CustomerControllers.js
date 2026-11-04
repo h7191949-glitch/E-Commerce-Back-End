@@ -1,5 +1,6 @@
 
 const Customer = require("../models/Customers");
+const bcrypt = require("bcryptjs");
 
 const getCustomers = async (req, res) => {
   try {
@@ -12,12 +13,41 @@ const getCustomers = async (req, res) => {
 
 const addCustomer = async (req, res) => {
   try {
-    const customer = await Customer.create(req.body);
+    const { name, email, phone, address, password } = req.body;
+
+    const customerData = {
+      name,
+      email,
+      phone,
+      address
+    };
+
+    if (password) {
+      if (password.length < 8) {
+        return res.status(400).json({
+          message: "Password must be at least 8 characters."
+        });
+      }
+
+      customerData.passwordHash = await bcrypt.hash(password, 12);
+    }
+
+    const customer = await Customer.create(customerData);
+
+    const safeCustomer = customer.toObject();
+    delete safeCustomer.passwordHash;
+
     res.status(201).json({
       message: "Customer added successfully",
-      customer
+      customer: safeCustomer
     });
   } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({
+        message: "This email is already registered."
+      });
+    }
+
     res.status(400).json({ message: error.message });
   }
 };

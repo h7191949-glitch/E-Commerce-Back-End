@@ -12,7 +12,8 @@ const customerSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      lowercase: true
+      lowercase: true,
+      trim: true
     },
     phone: {
       type: String,
@@ -21,6 +22,10 @@ const customerSchema = new mongoose.Schema(
     address: {
       type: String,
       default: ""
+    },
+    passwordHash: {
+      type: String,
+      select: false
     },
     status: {
       type: String,
